@@ -1,0 +1,15 @@
+BIT0 equ 01h
+BIT1 equ 02h
+BIT2 equ 04h
+BIT3 equ 08h
+BIT4 equ 10h
+BIT5 equ 20h
+BIT6 equ 40h
+BIT7 equ 80h
+CR equ 0dh
+LF equ 0ah
+ESCAPE equ 1bh
+ESC_ equ 1bh
+TRUE equ 1
+FALSE equ 0
+NULL equ 0

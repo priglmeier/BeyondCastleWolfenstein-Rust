@@ -1,0 +1,21 @@
+name: build
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install X11 headers
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev
+      - run: cargo build --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bcw-${{ runner.os }}
+          path: |
+            target/release/bcw
+            target/release/bcw.exe
+            README.md

@@ -1,0 +1,27 @@
+[package]
+name = "bcw"
+version = "1.0.0"
+edition = "2021"
+description = "Beyond Castle Wolfenstein - native Rust port of the public-domain PC version"
+license = "MIT"
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "unwind"
+
+# The game logic is a faithful translation of 16-bit 8086 code, where
+# arithmetic on bytes and words wraps around. Keep that behaviour in every
+# build profile.
+[profile.dev]
+overflow-checks = false
+
+[profile.test]
+overflow-checks = false
+
+[features]
+# Type-check the Windows back end on other systems (cargo check --features wincheck)
+wincheck = []
