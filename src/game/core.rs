@@ -619,10 +619,10 @@ impl<H: Host> Game<H> {
                 self.st.ds[SEG900 + 4..SEG900 + 4 + n].copy_from_slice(&d[..n]);
             }
             None => {
-                let name = if f == GameFile::OptionA {
-                    "optiona.dat"
-                } else {
-                    "optionc.dat"
+                let name = match f {
+                    GameFile::OptionA => "optiona.dat",
+                    GameFile::OptionZ => "optionz.dat",
+                    _ => "optionc.dat",
                 };
                 let st = &mut self.st;
                 st.bios.set_mode(&mut st.vram, 3);

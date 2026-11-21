@@ -208,6 +208,8 @@ pub enum GameFile {
     SaveGame,
     OptionA,
     OptionC,
+    /// optionz.dat: the custom bunker that menu option E plays (not in the original).
+    OptionZ,
 }
 
 /// The machine the game runs on. Every hardware/BIOS/DOS interaction of the
@@ -260,6 +262,9 @@ pub struct Options {
 pub struct Game<H: Host> {
     pub st: State,
     pub host: H,
+    /// optionz.dat was found when the menu was drawn, so option E is shown.
+    /// Kept outside `State` so the checked game state is unchanged.
+    pub custom_bunker: bool,
 }
 
 impl<H: Host> std::ops::Deref for Game<H> {
@@ -284,6 +289,7 @@ impl<H: Host> Game<H> {
         let mut g = Game {
             st: State::new(),
             host,
+            custom_bunker: false,
         };
         g.check_requirements();
         g.check_command_line(opts);

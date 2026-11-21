@@ -74,6 +74,12 @@ Put `optiona.dat` in the same folder as the program, or point to a folder
 with `--dir <path>`. That folder also holds `savegame.bcw`, which Esc
 writes, and `optionc.dat`, which menu option C reads.
 
+If that folder also has **`optionz.dat`**, a custom bunker exported from
+the Beyond Castle Wolfenstein Editor, the menu adds option **E) Start a new
+game with your custom bunker**, which plays it exactly as designed. The game
+never writes `optionz.dat`, so options A, B and C can't erase it. Without
+the file, the menu is exactly the original's.
+
 Without `optiona.dat`, the title screen and demo still run. Choosing A, B
 or C shows the original's "file is missing" message.
 

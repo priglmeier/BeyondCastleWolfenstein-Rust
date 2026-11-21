@@ -9,7 +9,8 @@ const USAGE: &str = "Beyond Castle Wolfenstein (Rust port)
 usage: bcw [options]
   -nosb          PC-speaker sound only (no sampled voices)
   -quiet         no sound
-  --dir <path>   folder for savegame.bcw / optiona.dat / optionc.dat
+  --dir <path>   folder for savegame.bcw / optiona.dat / optionc.dat /
+                 optionz.dat
                  (default: the folder the program is in)
   --help         this text
 

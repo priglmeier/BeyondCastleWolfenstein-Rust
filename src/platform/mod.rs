@@ -217,6 +217,7 @@ impl RealHost {
             GameFile::SaveGame => "savegame.bcw",
             GameFile::OptionA => "optiona.dat",
             GameFile::OptionC => "optionc.dat",
+            GameFile::OptionZ => "optionz.dat",
         };
         // DOS file names are case-insensitive: accept OPTIONA.DAT, OptionA.dat, ...
         if let Ok(rd) = std::fs::read_dir(&self.dir) {

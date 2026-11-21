@@ -90,6 +90,7 @@ impl TestHost {
             GameFile::SaveGame => "savegame.bcw",
             GameFile::OptionA => "optiona.dat",
             GameFile::OptionC => "optionc.dat",
+            GameFile::OptionZ => "optionz.dat",
         };
         if let Ok(rd) = std::fs::read_dir(&self.dir) {
             for e in rd.flatten() {

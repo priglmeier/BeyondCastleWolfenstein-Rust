@@ -37,6 +37,14 @@ impl<H: Host> Game<H> {
         self.locate();
         self.r.bx = 0x5E;
         self.print_msg();
+        // Option E (not in the original): only when optionz.dat is in the
+        // game folder. Without it the screen is exactly the original's.
+        self.custom_bunker = self.host.file_read(GameFile::OptionZ).is_some();
+        if self.custom_bunker {
+            self.print_text(b" E) Start a new game with your custom\n\r    bunker");
+            self.r.dx = 0x1200;
+            self.locate();
+        }
         if self.b(RESUME_GAME) == 0xFF {
             self.r.bx = 0x5F;
             self.print_msg(); // "D) Resume game"
@@ -75,6 +83,16 @@ impl<H: Host> Game<H> {
                         self.setb(RESUME_GAME, 0);
                         self.set_defaults();
                     }
+                    4 => {
+                        // E: the custom bunker, played as designed (like C).
+                        // Nothing here or in A/B ever writes optionz.dat.
+                        self.r.set_ch(0x0D);
+                        self.load_sectors();
+                        self.load_option(GameFile::OptionZ);
+                        self.reset_vars();
+                        self.setb(RESUME_GAME, 0);
+                        self.set_defaults();
+                    }
                     _ => {
                         // D: resume
                         self.r.set_ch(9);
@@ -101,18 +119,42 @@ impl<H: Host> Game<H> {
             // loc_341
             let n = al.wrapping_sub(b'a');
             self.r.set_al(n);
-            if n > 3 {
+            if n > 3 && !(n == 4 && self.custom_bunker) {
                 continue;
             }
             if n == 3 && self.b(RESUME_GAME) != 0xFF {
                 continue;
             }
             self.draw_selection_border();
-            self.r.dx = 0x1301;
+            // With option E shown, D sits three rows lower, so the prompt
+            // moves below D's box when D is there.
+            let d_shown = self.b(RESUME_GAME) == 0xFF;
+            self.r.dx = if self.custom_bunker && d_shown { 0x1501 } else { 0x1301 };
             self.locate();
             self.r.bx = 0x65;
             self.print_msg(); // "Press return to begin..."
             self.host.present(&self.st);
+        }
+    }
+
+    /// Screen position of option `sel`'s selection box: the original's table
+    /// (rows 5, 8, 11, 14), except with option E shown, where E's box takes
+    /// row 14 and D's moves to row 17.
+    fn menu_box_pos(&self, sel: u8) -> u16 {
+        if self.custom_bunker {
+            match sel {
+                4 => return 0x1180,
+                3 => return 0x1540,
+                _ => {}
+            }
+        }
+        self.w(V35EF + ((sel as u16) << 1))
+    }
+
+    /// Print plain text in colour 3 at the cursor (for option E's line).
+    fn print_text(&mut self, text: &[u8]) {
+        for &c in text {
+            self.teletype(c, 3);
         }
     }
 
@@ -557,7 +599,7 @@ impl<H: Host> Game<H> {
         if sel != 0xFF {
             // erase the old box
             self.r.bx = (sel as u16) << 1;
-            self.r.di = self.w(V35EF + self.r.bx);
+            self.r.di = self.menu_box_pos(sel);
             self.r.dx = 0;
             for _ in 0..0x28 {
                 self.r.set_al(0x20);
@@ -578,7 +620,7 @@ impl<H: Host> Game<H> {
         // loc_394
         self.setb(MENU_SELECT, al);
         self.r.bx = (al as u16) << 1;
-        self.r.di = self.w(V35EF + self.r.bx);
+        self.r.di = self.menu_box_pos(al);
         self.r.dx = 0;
         let g = |s: &mut Self, c: u8| {
             s.r.set_al(c);
