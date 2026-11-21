@@ -1,0 +1,60 @@
+name: release
+# Run from the Actions tab: builds the Windows and Linux programs, packages
+# them with optiona.dat and optionc.dat (taken from the first release) and
+# creates release vVERSION.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 1.1.0 (must match Cargo.toml)"
+        required: true
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install X11 headers
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev
+      - run: cargo build --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bcw-${{ runner.os }}
+          path: |
+            target/release/bcw
+            target/release/bcw.exe
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check version
+        run: grep -q "^version = \"$VERSION\"" Cargo.toml || { echo "Cargo.toml version is not $VERSION"; exit 1; }
+      - uses: actions/download-artifact@v4
+        with:
+          path: arts
+      - name: Package
+        run: |
+          D=BeyondCastleWolfenstein_Rust
+          mkdir "$D"
+          cp arts/bcw-Linux/bcw arts/bcw-Windows/bcw.exe "$D/"
+          chmod +x "$D/bcw" "$D/bcw.exe"
+          gh release download Release -p "$D.zip" -D old
+          unzip -j "old/$D.zip" "$D/optiona.dat" "$D/optionc.dat" -d "$D"
+          zip -r "${D}_v$VERSION.zip" "$D"
+          unzip -l "${D}_v$VERSION.zip"
+      - name: Create release
+        run: |
+          gh release create "v$VERSION" "BeyondCastleWolfenstein_Rust_v$VERSION.zip" \
+            --target "$GITHUB_SHA" \
+            --title "BeyondCastleWolfenstein-Rust v$VERSION" \
+            --notes "Version $VERSION"
